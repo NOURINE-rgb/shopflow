@@ -1,14 +1,14 @@
 from django.db import models
 
 # Create your models here.
-class OrderStatus(models.TextChoices):
-    REQUESTED = 'requested', 'Requested'
-    CONFIRMED = 'confirmed', 'Confirmed'
-    IN_WAY = 'in_way', 'In the way'
-    DELIVERED = 'delivered', 'Delivered'
-    NOT_DELIVERED = 'not_delivered', 'Not delivered'
     
 class Order(models.Model):
+    class OrderStatus(models.TextChoices):
+       REQUESTED = 'requested', 'Requested'
+       CONFIRMED = 'confirmed', 'Confirmed'
+       IN_WAY = 'in_way', 'In the way'
+       DELIVERED = 'delivered', 'Delivered'
+       NOT_DELIVERED = 'not_delivered', 'Not delivered'
     user = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='orders')
     total_price = models.DecimalField(max_digits=10, decimal_places=2,default=0.00)
     status = models.CharField(max_length=20, choices = OrderStatus.choices, default=OrderStatus.REQUESTED)
