@@ -1,6 +1,7 @@
 from django.db import transaction
 from django.shortcuts import render
 from rest_framework import status
+from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -8,7 +9,7 @@ from rest_framework.views import APIView
 from cart.models import Cart
 from orders.models import Order, OrderItem
 
-from .serializers import CheckoutSerializer
+from .serializers import CheckoutSerializer, OrderSerializer
 
 
 # Create your views here.
@@ -62,4 +63,28 @@ class CheckoutApiView(APIView):
                 "order_id": order.id,
             },
             status=status.HTTP_201_CREATED,
+        )
+
+
+class OrderListApiView(ListAPIView):
+    serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return (
+            Order.objects.filter(user=self.request.user)
+            .prefetch_related("items__product")
+            .order_by("-created_at")
+        )
+
+
+class OrderDetailApiView(RetrieveAPIView):
+    serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return (
+            Order.objects.filter(user=self.request.user)
+            .prefetch_related("items__product")
+            .order_by("-created_at")
         )
