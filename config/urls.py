@@ -19,12 +19,15 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
+from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/v1/products/", include("products.urls")),
     path("api/v1/cart/", include("cart.urls")),
     path("api/v1/orders/", include("orders.urls")),
+    path("api/v1/auth/", include("users.urls")),
+    path("api/v1/auth/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 ]
 
 if settings.DEBUG:
