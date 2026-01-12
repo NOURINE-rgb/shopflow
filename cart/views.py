@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -9,8 +10,13 @@ from products.models import Product
 
 from .serializers import AddToCartSerializer, UpdateCartItemSerializer
 
-
 # Create your views here.
+
+
+@extend_schema(
+    tags=["Cart"],
+    responses={200: dict},
+)
 class CartDetailApiView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -30,6 +36,11 @@ class CartDetailApiView(APIView):
         return Response({"items": items, "total_price": total_price})
 
 
+@extend_schema(
+    tags=["Cart"],
+    request=AddToCartSerializer,
+    responses={200: dict},
+)
 class AddToCartApiView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -59,8 +70,13 @@ class AddToCartApiView(APIView):
         return Response({"detail": "Product added to cart"})
 
 
+@extend_schema(
+    tags=["Cart"],
+    request=UpdateCartItemSerializer,
+    responses={200: dict},
+)
 class UpdateCartItemApiView(APIView):
-    persmission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def put(self, request):
         serializer = UpdateCartItemSerializer(request.data)
@@ -73,6 +89,10 @@ class UpdateCartItemApiView(APIView):
         return Response({"detail": "Cart item updated"})
 
 
+@extend_schema(
+    tags=["Cart"],
+    responses={204: None},
+)
 class RemoveCartItemApiView(APIView):
     permission_classes = [IsAuthenticated]
 

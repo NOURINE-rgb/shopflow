@@ -1,6 +1,7 @@
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -17,6 +18,7 @@ from .serializers import (
 
 
 # Create your views here.
+@extend_schema(tags=["Auth"], requests=RegisterSerializer, responses={201: dict})
 class RegisterApiView(APIView):
     permission_classes = [AllowAny]
 
@@ -36,6 +38,11 @@ class RegisterApiView(APIView):
         )
 
 
+@extend_schema(
+    tags=["Auth"],
+    request=EmailLoginSerializer,
+    responses={200: dict},
+)
 class EmailLoginApiView(APIView):
     permission_calsses = [AllowAny]
 
@@ -54,6 +61,11 @@ class EmailLoginApiView(APIView):
         )
 
 
+@extend_schema(
+    tags=["Auth"],
+    request=ForgotPasswordSerializer,
+    responses={200: dict},
+)
 class ForgotPasswordApiView(APIView):
     permission_classes = [AllowAny]
 
@@ -78,6 +90,11 @@ class ForgotPasswordApiView(APIView):
         )
 
 
+@extend_schema(
+    tags=["Auth"],
+    request=ResetPasswordSerializer,
+    responses={200: dict},
+)
 class ResetPasswordApiView(APIView):
     permission_classes = [AllowAny]
 
