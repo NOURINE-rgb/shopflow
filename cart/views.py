@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -13,10 +13,7 @@ from .serializers import AddToCartSerializer, UpdateCartItemSerializer
 # Create your views here.
 
 
-@extend_schema(
-    tags=["Cart"],
-    responses={200: dict},
-)
+@extend_schema(tags=["Cart"])
 class CartDetailApiView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -33,13 +30,14 @@ class CartDetailApiView(APIView):
             for item in cart.items.all()
         ]
         total_price = sum(item["total"] for item in items)
-        return Response({"items": items, "total_price": total_price})
+        return Response(
+            {"items": items, "total_price": total_price}, status=status.HTTP_200_OK
+        )
 
 
 @extend_schema(
     tags=["Cart"],
     request=AddToCartSerializer,
-    responses={200: dict},
 )
 class AddToCartApiView(APIView):
     permission_classes = [IsAuthenticated]
@@ -49,7 +47,7 @@ class AddToCartApiView(APIView):
         serializer.is_valid(raise_exception=True)
         product_id = serializer.validated_data["product_id"]
         quantity = serializer.validated_data["quantity"]
-        product = Product.objects.get(id=product_id)
+        product = get_object_or_404(Product, id=product_id)
         if quantity > product.stock:
             return Response(
                 {"error": "Insufficient stock"}, status=status.HTTP_400_BAD_REQUEST
@@ -59,7 +57,7 @@ class AddToCartApiView(APIView):
         cart_item, created = cart.items.get_or_create(
             cart=cart,
             product=product,
-            default={
+            defaults={
                 "quantity": quantity,
                 "price": product.discounted_price or product.price,
             },
@@ -73,13 +71,12 @@ class AddToCartApiView(APIView):
 @extend_schema(
     tags=["Cart"],
     request=UpdateCartItemSerializer,
-    responses={200: dict},
 )
 class UpdateCartItemApiView(APIView):
     permission_classes = [IsAuthenticated]
 
     def put(self, request):
-        serializer = UpdateCartItemSerializer(request.data)
+        serializer = UpdateCartItemSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         cart_item_id = serializer.validated_data["cart_item_id"]
         quantity = serializer.validated_data["quantity"]
@@ -89,10 +86,7 @@ class UpdateCartItemApiView(APIView):
         return Response({"detail": "Cart item updated"})
 
 
-@extend_schema(
-    tags=["Cart"],
-    responses={204: None},
-)
+@extend_schema(tags=["Cart"])
 class RemoveCartItemApiView(APIView):
     permission_classes = [IsAuthenticated]
 

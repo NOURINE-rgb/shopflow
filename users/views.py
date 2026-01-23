@@ -3,7 +3,7 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -14,11 +14,12 @@ from .serializers import (
     ForgotPasswordSerializer,
     RegisterSerializer,
     ResetPasswordSerializer,
+    UserSerializer,
 )
 
 
 # Create your views here.
-@extend_schema(tags=["Auth"], requests=RegisterSerializer, responses={201: dict})
+@extend_schema(tags=["Authentication"], request=RegisterSerializer, responses=201)
 class RegisterApiView(APIView):
     permission_classes = [AllowAny]
 
@@ -38,13 +39,9 @@ class RegisterApiView(APIView):
         )
 
 
-@extend_schema(
-    tags=["Auth"],
-    request=EmailLoginSerializer,
-    responses={200: dict},
-)
+@extend_schema(tags=["Authentication"], request=EmailLoginSerializer, responses=200)
 class EmailLoginApiView(APIView):
-    permission_calsses = [AllowAny]
+    permission_classes = [AllowAny]
 
     def post(self, request):
         serializer = EmailLoginSerializer(data=request.data)
@@ -54,6 +51,7 @@ class EmailLoginApiView(APIView):
         return Response(
             {
                 "detail": "Login successful",
+                "user": UserSerializer(user).data,
                 "refresh": str(refresh),
                 "access": str(refresh.access_token),
             },
@@ -62,10 +60,18 @@ class EmailLoginApiView(APIView):
 
 
 @extend_schema(
-    tags=["Auth"],
-    request=ForgotPasswordSerializer,
-    responses={200: dict},
+    tags=["Authentication"],
+    responses=200,
 )
+class CurrentUserApiView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@extend_schema(tags=["Authentication"])
 class ForgotPasswordApiView(APIView):
     permission_classes = [AllowAny]
 
@@ -90,11 +96,7 @@ class ForgotPasswordApiView(APIView):
         )
 
 
-@extend_schema(
-    tags=["Auth"],
-    request=ResetPasswordSerializer,
-    responses={200: dict},
-)
+@extend_schema(tags=["Authentication"])
 class ResetPasswordApiView(APIView):
     permission_classes = [AllowAny]
 

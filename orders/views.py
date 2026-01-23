@@ -1,5 +1,6 @@
 from django.db import transaction
 from django.shortcuts import render
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated
@@ -13,6 +14,7 @@ from .serializers import CheckoutSerializer, OrderSerializer
 
 
 # Create your views here.
+@extend_schema(tags=["Orders"])
 class CheckoutApiView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -66,6 +68,7 @@ class CheckoutApiView(APIView):
         )
 
 
+@extend_schema(tags=["Orders"])
 class OrderListApiView(ListAPIView):
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
@@ -78,6 +81,7 @@ class OrderListApiView(ListAPIView):
         )
 
 
+@extend_schema(tags=["Orders"])
 class OrderDetailApiView(RetrieveAPIView):
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
