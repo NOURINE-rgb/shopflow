@@ -1,8 +1,20 @@
+from drf_spectacular.utils import OpenApiExample, extend_schema_serializer
 from rest_framework import serializers
 
 from .models import Order, OrderItem
 
 
+@extend_schema_serializer(
+    examples=[
+        OpenApiExample(
+            "Checkout Example",
+            value={
+                "address": "123 Main St, Springfield",
+                "phone_number": "+213553866110",
+            },
+        )
+    ]
+)
 class CheckoutSerializer(serializers.Serializer):
     address = serializers.CharField()
     phone_number = serializers.CharField(max_length=15)
@@ -31,3 +43,7 @@ class OrderSerializer(serializers.ModelSerializer):
             "created_at",
             "items",
         ]
+
+
+class UpdateStatusSerializer(serializers.Serializer):
+    status = serializers.ChoiceField(choices=Order.OrderStatus.choices)

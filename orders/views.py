@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.generics import ListAPIView, RetrieveAPIView
@@ -9,12 +9,13 @@ from rest_framework.views import APIView
 
 from cart.models import Cart
 from orders.models import Order, OrderItem
+from orders.permissions import IsAdminUserCustom
 
-from .serializers import CheckoutSerializer, OrderSerializer
+from .serializers import CheckoutSerializer, OrderSerializer, UpdateStatusSerializer
 
 
 # Create your views here.
-@extend_schema(tags=["Orders"])
+@extend_schema(tags=["Orders"], request=CheckoutSerializer, responses=201)
 class CheckoutApiView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -91,4 +92,24 @@ class OrderDetailApiView(RetrieveAPIView):
             Order.objects.filter(user=self.request.user)
             .prefetch_related("items__product")
             .order_by("-created_at")
+        )
+
+
+@extend_schema(tags=["Orders"], request=UpdateStatusSerializer, responses=200)
+class AdminUpdateOrderStatusApiView(APIView):
+    permission_classes = [
+        IsAuthenticated,
+        IsAdminUserCustom,
+    ]  # Add admin permission check here
+
+    def patch(self, request, order_id):
+        order = get_object_or_404(Order, id=order_id)
+        serializer = UpdateStatusSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        order.status = serializer.validated_data["status"]
+        order.save(update_fields=["status"])
+
+        return Response(
+            {"detail": "Order status updated successfully", "new_status": order.status},
+            status=status.HTTP_200_OK,
         )

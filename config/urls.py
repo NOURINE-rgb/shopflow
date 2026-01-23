@@ -21,7 +21,6 @@ from django.contrib import admin
 from django.shortcuts import redirect
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
-from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
     path("", lambda request: redirect("swagger-ui", permanent=False)),
@@ -30,7 +29,6 @@ urlpatterns = [
     path("api/v1/cart/", include("cart.urls")),
     path("api/v1/orders/", include("orders.urls")),
     path("api/v1/auth/", include("users.urls")),
-    path("api/v1/auth/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
         "swagger-ui/",
